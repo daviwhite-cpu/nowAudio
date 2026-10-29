@@ -1,0 +1,2899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AudioNow</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,800&display=swap');
+
+    :root {
+      --bg-dark: #1a0b12;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --gradient-sunset: linear-gradient(135deg, #ff7e5f, #feb47b);
+      --gradient-pink: linear-gradient(135deg, #f857a6, #ff5858);
+      --pink: #f857a6;
+      --orange: #ff7e5f;
+      --text-main: #ffffff;
+      --text-muted: #d1b7c1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'DM Sans', sans-serif; }
+    
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(248, 87, 166, 0.15), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(255, 126, 95, 0.15), transparent 25%);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* --- LOGIN SCREEN --- */
+    #loginScreen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: url('https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?q=80&w=2070&auto=format&fit=crop') center/cover;
+      display: flex; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .login-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to bottom, rgba(26, 11, 18, 0.7), rgba(26, 11, 18, 0.9));
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .login-box {
+      position: relative; z-index: 10;
+      background: rgba(26, 11, 18, 0.8);
+      padding: 50px 40px; border-radius: 24px;
+      text-align: center; width: 420px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(248, 87, 166, 0.2);
+    }
+    .login-logo {
+      font-size: 40px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 10px;
+      background: var(--gradient-sunset); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .login-box p { font-size: 15px; color: var(--text-muted); margin-bottom: 30px; }
+    .login-box input {
+      width: 100%; padding: 16px; margin-bottom: 16px;
+      background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); 
+      border-radius: 12px; color: #fff; font-size: 15px; outline: none; transition: 0.2s;
+    }
+    .login-box input:focus { border-color: var(--pink); background: rgba(0,0,0,0.5); }
+    .login-box button {
+      width: 100%; padding: 16px; 
+      background: var(--gradient-pink); color: #fff; 
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: 0.2s; margin-top: 10px;
+      box-shadow: 0 10px 20px rgba(248, 87, 166, 0.3);
+    }
+    .login-box button:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(248, 87, 166, 0.4); }
+
+    /* --- MAIN APP LAYOUT --- */
+    #appScreen { display: none; flex-direction: column; height: 100vh; padding-bottom: 110px; }
+    
+    /* TOP NAV BAR */
+    .top-nav {
+      height: 80px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(26, 11, 18, 0.6); backdrop-filter: blur(20px); z-index: 100;
+    }
+    .logo { font-size: 28px; font-weight: 800; letter-spacing: -1px; background: var(--gradient-sunset); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; }
+    
+    .search-container { flex: 1; max-width: 500px; position: relative; margin: 0 40px; }
+    .search-container i { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .search-container input {
+      width: 100%; padding: 14px 20px 14px 50px; border-radius: 50px;
+      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff; font-size: 15px; outline: none; transition: 0.2s;
+    }
+    .search-container input:focus { background: rgba(255, 255, 255, 0.1); border-color: var(--orange); }
+
+    .nav-actions { display: flex; align-items: center; gap: 20px; }
+    .nav-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-pink); cursor: pointer; }
+
+    /* MAIN FEED */
+    .main-feed { flex: 1; overflow-y: auto; padding: 40px; max-width: 1400px; margin: 0 auto; width: 100%; }
+    .section-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 30px; }
+    .section-title { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+    
+    .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px; }
+    
+    .album-card {
+      background: var(--bg-card); padding: 16px; border-radius: 20px; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 1px solid rgba(255, 255, 255, 0.03); position: relative;
+    }
+    .album-card:hover { background: rgba(255, 255, 255, 0.08); transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); border-color: rgba(255, 126, 95, 0.3); }
+    .album-img { width: 100%; aspect-ratio: 1; border-radius: 12px; object-fit: cover; margin-bottom: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); background: #2a1a20; }
+    .album-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .album-artist { font-size: 14px; color: var(--text-muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .play-icon-hover {
+      position: absolute; bottom: 80px; right: 24px; width: 50px; height: 50px;
+      background: var(--gradient-pink); border-radius: 50%; 
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 18px; opacity: 0; transform: scale(0.8) translateY(10px);
+      transition: all 0.3s; box-shadow: 0 10px 20px rgba(248, 87, 166, 0.4);
+    }
+    .album-card:hover .play-icon-hover { opacity: 1; transform: scale(1) translateY(0); }
+
+    /* FLOATING BOTTOM PLAYER */
+    .floating-player {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      width: calc(100% - 80px); max-width: 1200px;
+      background: rgba(26, 11, 18, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px; height: 90px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 40px rgba(255, 126, 95, 0.1);
+      z-index: 1000;
+    }
+
+    /* Left: Info */
+    .player-info { display: flex; align-items: center; gap: 16px; width: 30%; min-width: 200px; }
+    .player-art { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.4); background: #2a1a20; }
+    .p-text { display: flex; flex-direction: column; overflow: hidden; }
+    .p-title { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .p-artist { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .like-btn { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; margin-left: 10px; transition: 0.2s; }
+    .like-btn:hover { color: var(--orange); }
+    .like-btn.liked { color: var(--pink); }
+
+    /* Center: Controls */
+    .player-controls { display: flex; flex-direction: column; align-items: center; width: 40%; max-width: 500px; }
+    .control-buttons { display: flex; align-items: center; gap: 24px; margin-bottom: 8px; }
+    .control-buttons button { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; transition: 0.2s; }
+    .control-buttons button:hover { color: #fff; }
+    .play-main { font-size: 40px !important; color: #fff !important; display: flex; align-items: center; }
+    .play-main:hover { color: var(--pink) !important; transform: scale(1.05); }
+
+    /* Progress */
+    .progress-area { display: flex; align-items: center; gap: 12px; width: 100%; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .progress-bar { flex: 1; height: 5px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; cursor: pointer; position: relative; }
+    .progress-fill { height: 100%; background: var(--gradient-sunset); border-radius: 3px; width: 0%; transition: width 0.1s linear; }
+
+    /* Right: Volume */
+    .player-volume { display: flex; align-items: center; justify-content: flex-end; gap: 12px; width: 30%; }
+    .player-volume i { color: var(--text-muted); font-size: 14px; }
+    .volume-bar { width: 100px; height: 5px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; cursor: pointer; overflow: hidden; }
+    .volume-fill { height: 100%; background: #fff; border-radius: 3px; width: 100%; }
+    .volume-bar:hover .volume-fill { background: var(--orange); }
+
+    .spinner { display: none; text-align: center; padding: 40px; color: var(--pink); font-size: 32px; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen">
+    <div class="login-overlay"></div>
+    <div class="login-box">
+      <div class="login-logo">AudioNow</div>
+      <p>Feel the sunset. Hear the music.</p>
+      
+      <input type="text" id="loginUser" placeholder="Email address">
+      <input type="password" id="loginPass" placeholder="Password">
+      <button onclick="handleLogin()">Enter AudioNow</button>
+      
+      <p style="margin-top: 25px; font-size: 13px; color: var(--text-muted); cursor: pointer;" onclick="handleLogin()">
+        Skip and explore &rarr;
+      </p>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="appScreen">
+    
+    <!-- TOP NAV -->
+    <div class="top-nav">
+      <div class="logo">AudioNow</div>
+      
+      <div class="search-container">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search artists, songs, moods..." onkeydown="handleSearch(event)">
+      </div>
+
+      <div class="nav-actions">
+        <div class="nav-avatar"></div>
+      </div>
+    </div>
+
+    <!-- SCROLLING FEED -->
+    <div class="main-feed">
+      <div class="section-header">
+        <h2 class="section-title" id="sectionTitle">Sunset Mixes (Copyright Free)</h2>
+      </div>
+      <div class="album-grid" id="musicGrid">
+        <!-- Cards injected here -->
+      </div>
+      <div class="spinner" id="loadingSpinner"><i class="fas fa-circle-notch fa-spin"></i></div>
+    </div>
+
+    <!-- FLOATING PLAYER -->
+    <div class="floating-player">
+      
+      <div class="player-info">
+        <img id="playerArt" class="player-art" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cover">
+        <div class="p-text">
+          <div class="p-title" id="playerTitle">Nothing playing</div>
+          <div class="p-artist" id="playerArtist">Select a track</div>
+        </div>
+        <button class="like-btn" id="likeBtn" onclick="toggleLike()"><i class="far fa-heart"></i></button>
+      </div>
+
+      <div class="player-controls">
+        <div class="control-buttons">
+          <button onclick="prevSong()"><i class="fas fa-step-backward"></i></button>
+          <button class="play-main" id="mainPlayBtn" onclick="togglePlay()"><i class="fas fa-play-circle"></i></button>
+          <button onclick="nextSong()"><i class="fas fa-step-forward"></i></button>
+        </div>
+        <div class="progress-area">
+          <span id="currTime">0:00</span>
+          <div class="progress-bar" id="progressBar" onclick="seek(event)">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <span id="totalTime">0:00</span>
+        </div>
+      </div>
+
+      <div class="player-volume">
+        <i class="fas fa-volume-up"></i>
+        <div class="volume-bar" onclick="setVolume(event)">
+          <div class="volume-fill" id="volumeFill"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <audio id="audioPlayer" crossorigin="anonymous"></audio>
+
+  <script>
+    let playlist = [];
+    let currentIndex = -1;
+    let isPlaying = false;
+    let isLiked = false;
+    const audio = document.getElementById('audioPlayer');
+
+    // Demo songs that are 100% copyright free and stream directly
+    const demoSongs = [
+      {
+        title: "Sunset Drive",
+        artist: "AudioNow Originals",
+        cover: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=300&auto=format&fit=crop",
+        preview: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+      },
+      {
+        title: "Neon Dreams",
+        artist: "Synthwave Collective",
+        cover: "https://images.unsplash.com/photo-1557672172-298e090bd0f1?q=80&w=300&auto=format&fit=crop",
+        preview: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+      },
+      {
+        title: "Ocean Breeze",
+        artist: "Chillhop Records",
+        cover: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=300&auto=format&fit=crop",
+        preview: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+      },
+      {
+        title: "Midnight City",
+        artist: "Lo-Fi Beats",
+        cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=300&auto=format&fit=crop",
+        preview: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+      },
+      {
+        title: "Golden Hour",
+        artist: "Acoustic Vibes",
+        cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=300&auto=format&fit=crop",
+        preview: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+      },
+      {
+        title: "Electric Feel",
+        artist: "Indie Pop",
+        cover: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=300&auto=format&fit=crop",
+        preview: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+      }
+    ];
+
+    function handleLogin() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display = 'flex';
+      // Load demo songs
+      playlist = demoSongs;
+      renderCards();
+    }
+
+    async function handleSearch(event) {
+      if (event.key === 'Enter') {
+        // For this demo, we just re-load the copyright-free songs
+        // In a real app, you'd query an API here
+        alert("This is a demo with copyright-free songs. Search is disabled.");
+      }
+    }
+
+    function renderCards() {
+      const grid = document.getElementById('musicGrid');
+      grid.innerHTML = '';
+
+      playlist.forEach((track, index) => {
+        const card = document.createElement('div');
+        card.className = 'album-card';
+        card.onclick = () => playSong(index);
+
+        card.innerHTML = `
+          <img class="album-img" src="${track.cover}" alt="cover" onerror="this.src='https://via.placeholder.com/300/2a1a20/f857a6?text=AudioNow'">
+          <div class="play-icon-hover"><i class="fas fa-play" style="margin-left:2px;"></i></div>
+          <div class="album-title">${track.title}</div>
+          <div class="album-artist">${track.artist}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function playSong(index) {
+      currentIndex = index;
+      const track = playlist[index];
+
+      document.getElementById('playerTitle').textContent = track.title;
+      document.getElementById('playerArtist').textContent = track.artist;
+      document.getElementById('playerArt').src = track.cover;
+      
+      isLiked = false;
+      updateLikeUI();
+
+      audio.src = track.preview;
+      audio.play().catch(e => console.log("Playback error:", e));
+      
+      isPlaying = true;
+      updatePlayUI();
+    }
+
+    function togglePlay() {
+      if (currentIndex === -1) return;
+      if (isPlaying) { audio.pause(); isPlaying = false; } 
+      else { audio.play(); isPlaying = true; }
+      updatePlayUI();
+    }
+
+    function updatePlayUI() {
+      const btn = document.getElementById('mainPlayBtn');
+      btn.innerHTML = isPlaying ? '<i class="fas fa-pause-circle"></i>' : '<i class="fas fa-play-circle"></i>';
+    }
+
+    function nextSong() {
+      if (playlist.length === 0) return;
+      currentIndex = (currentIndex + 1) % playlist.length;
+      playSong(currentIndex);
+    }
+
+    function prevSong() {
+      if (playlist.length === 0) return;
+      currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+      playSong(currentIndex);
+    }
+
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        const percent = (audio.currentTime / audio.duration) * 100;
+        document.getElementById('progressFill').style.width = `${percent}%`;
+        document.getElementById('currTime').textContent = formatTime(audio.currentTime);
+      }
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+      document.getElementById('totalTime').textContent = formatTime(audio.duration);
+    });
+
+    audio.addEventListener('ended', () => nextSong());
+
+    function seek(e) {
+      const bar = document.getElementById('progressBar');
+      const rect = bar.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      if (audio.duration) audio.currentTime = percent * audio.duration;
+    }
+
+    function setVolume(e) {
+      const bar = document.querySelector('.volume-bar');
+      const rect = bar.getBoundingClientRect();
+      const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      audio.volume = percent;
+      document.getElementById('volumeFill').style.width = `${percent * 100}%`;
+    }
+
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return '0:00';
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
+
+    function toggleLike() {
+      isLiked = !isLiked;
+      updateLikeUI();
+    }
+
+    function updateLikeUI() {
+      const btn = document.getElementById('likeBtn');
+      if (isLiked) {
+        btn.classList.add('liked');
+        btn.innerHTML = '<i class="fas fa-heart"></i>';
+      } else {
+        btn.classList.remove('liked');
+        btn.innerHTML = '<i class="far fa-heart"></i>';
+      }
+    }
+
+    document.getElementById('searchInput').addEventListener('keydown', handleSearch);
+  </script>
+</body>
+</html>
+
+On Thu, Oct 29, 2026, 5:10 PM David White <davideugenewhite2011@gmail.com> wrote:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AudioNow</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,800&display=swap');
+
+    :root {
+      --bg-dark: #1a0b12;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --gradient-sunset: linear-gradient(135deg, #ff7e5f, #feb47b);
+      --gradient-pink: linear-gradient(135deg, #f857a6, #ff5858);
+      --pink: #f857a6;
+      --orange: #ff7e5f;
+      --text-main: #ffffff;
+      --text-muted: #d1b7c1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'DM Sans', sans-serif; }
+    
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(248, 87, 166, 0.15), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(255, 126, 95, 0.15), transparent 25%);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* --- LOGIN SCREEN --- */
+    #loginScreen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: url('https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?q=80&w=2070&auto=format&fit=crop') center/cover;
+      display: flex; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .login-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to bottom, rgba(26, 11, 18, 0.7), rgba(26, 11, 18, 0.9));
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .login-box {
+      position: relative; z-index: 10;
+      background: rgba(26, 11, 18, 0.8);
+      padding: 50px 40px; border-radius: 24px;
+      text-align: center; width: 420px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(248, 87, 166, 0.2);
+    }
+    .login-logo {
+      font-size: 40px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 10px;
+      background: var(--gradient-sunset); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .login-box p { font-size: 15px; color: var(--text-muted); margin-bottom: 30px; }
+    .login-box input {
+      width: 100%; padding: 16px; margin-bottom: 16px;
+      background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); 
+      border-radius: 12px; color: #fff; font-size: 15px; outline: none; transition: 0.2s;
+    }
+    .login-box input:focus { border-color: var(--pink); background: rgba(0,0,0,0.5); }
+    .login-box button {
+      width: 100%; padding: 16px; 
+      background: var(--gradient-pink); color: #fff; 
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: 0.2s; margin-top: 10px;
+      box-shadow: 0 10px 20px rgba(248, 87, 166, 0.3);
+    }
+    .login-box button:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(248, 87, 166, 0.4); }
+
+    /* --- MAIN APP LAYOUT --- */
+    #appScreen { display: none; flex-direction: column; height: 100vh; padding-bottom: 110px; }
+    
+    /* TOP NAV BAR */
+    .top-nav {
+      height: 80px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(26, 11, 18, 0.6); backdrop-filter: blur(20px); z-index: 100;
+    }
+    .logo { font-size: 28px; font-weight: 800; letter-spacing: -1px; background: var(--gradient-sunset); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; }
+    
+    .search-container { flex: 1; max-width: 500px; position: relative; margin: 0 40px; }
+    .search-container i { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .search-container input {
+      width: 100%; padding: 14px 20px 14px 50px; border-radius: 50px;
+      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff; font-size: 15px; outline: none; transition: 0.2s;
+    }
+    .search-container input:focus { background: rgba(255, 255, 255, 0.1); border-color: var(--orange); }
+
+    .nav-actions { display: flex; align-items: center; gap: 20px; }
+    .nav-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-pink); cursor: pointer; }
+
+    /* MAIN FEED */
+    .main-feed { flex: 1; overflow-y: auto; padding: 40px; max-width: 1400px; margin: 0 auto; width: 100%; }
+    .section-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 30px; }
+    .section-title { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+    
+    .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px; }
+    
+    .album-card {
+      background: var(--bg-card); padding: 16px; border-radius: 20px; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 1px solid rgba(255, 255, 255, 0.03); position: relative;
+    }
+    .album-card:hover { background: rgba(255, 255, 255, 0.08); transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); border-color: rgba(255, 126, 95, 0.3); }
+    .album-img { width: 100%; aspect-ratio: 1; border-radius: 12px; object-fit: cover; margin-bottom: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+    .album-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .album-artist { font-size: 14px; color: var(--text-muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .play-icon-hover {
+      position: absolute; bottom: 80px; right: 24px; width: 50px; height: 50px;
+      background: var(--gradient-pink); border-radius: 50%; 
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 18px; opacity: 0; transform: scale(0.8) translateY(10px);
+      transition: all 0.3s; box-shadow: 0 10px 20px rgba(248, 87, 166, 0.4);
+    }
+    .album-card:hover .play-icon-hover { opacity: 1; transform: scale(1) translateY(0); }
+
+    /* FLOATING BOTTOM PLAYER */
+    .floating-player {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      width: calc(100% - 80px); max-width: 1200px;
+      background: rgba(26, 11, 18, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px; height: 90px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 40px rgba(255, 126, 95, 0.1);
+      z-index: 1000;
+    }
+
+    /* Left: Info */
+    .player-info { display: flex; align-items: center; gap: 16px; width: 30%; min-width: 200px; }
+    .player-art { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+    .p-text { display: flex; flex-direction: column; overflow: hidden; }
+    .p-title { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .p-artist { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .like-btn { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; margin-left: 10px; transition: 0.2s; }
+    .like-btn:hover { color: var(--orange); }
+    .like-btn.liked { color: var(--pink); }
+
+    /* Center: Controls */
+    .player-controls { display: flex; flex-direction: column; align-items: center; width: 40%; max-width: 500px; }
+    .control-buttons { display: flex; align-items: center; gap: 24px; margin-bottom: 8px; }
+    .control-buttons button { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; transition: 0.2s; }
+    .control-buttons button:hover { color: #fff; }
+    .play-main { font-size: 40px !important; color: #fff !important; display: flex; align-items: center; }
+    .play-main:hover { color: var(--pink) !important; transform: scale(1.05); }
+
+    /* Progress */
+    .progress-area { display: flex; align-items: center; gap: 12px; width: 100%; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .progress-bar { flex: 1; height: 5px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; cursor: pointer; position: relative; }
+    .progress-fill { height: 100%; background: var(--gradient-sunset); border-radius: 3px; width: 0%; transition: width 0.1s linear; }
+
+    /* Right: Volume */
+    .player-volume { display: flex; align-items: center; justify-content: flex-end; gap: 12px; width: 30%; }
+    .player-volume i { color: var(--text-muted); font-size: 14px; }
+    .volume-bar { width: 100px; height: 5px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; cursor: pointer; overflow: hidden; }
+    .volume-fill { height: 100%; background: #fff; border-radius: 3px; width: 100%; }
+    .volume-bar:hover .volume-fill { background: var(--orange); }
+
+    .spinner { display: none; text-align: center; padding: 40px; color: var(--pink); font-size: 32px; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen">
+    <div class="login-overlay"></div>
+    <div class="login-box">
+      <div class="login-logo">AudioNow</div>
+      <p>Feel the sunset. Hear the music.</p>
+      
+      <input type="text" id="loginUser" placeholder="Email address">
+      <input type="password" id="loginPass" placeholder="Password">
+      <button onclick="handleLogin()">Enter AudioNow</button>
+      
+      <p style="margin-top: 25px; font-size: 13px; color: var(--text-muted); cursor: pointer;" onclick="handleLogin()">
+        Skip and explore &rarr;
+      </p>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="appScreen">
+    
+    <!-- TOP NAV -->
+    <div class="top-nav">
+      <div class="logo">AudioNow</div>
+      
+      <div class="search-container">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search artists, songs, moods..." onkeydown="handleSearch(event)">
+      </div>
+
+      <div class="nav-actions">
+        <div class="nav-avatar"></div>
+      </div>
+    </div>
+
+    <!-- SCROLLING FEED -->
+    <div class="main-feed">
+      <div class="section-header">
+        <h2 class="section-title" id="sectionTitle">Sunset Mixes</h2>
+      </div>
+      <div class="album-grid" id="musicGrid">
+        <!-- Cards injected here -->
+      </div>
+      <div class="spinner" id="loadingSpinner"><i class="fas fa-circle-notch fa-spin"></i></div>
+    </div>
+
+    <!-- FLOATING PLAYER -->
+    <div class="floating-player">
+      
+      <div class="player-info">
+        <img id="playerArt" class="player-art" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cover">
+        <div class="p-text">
+          <div class="p-title" id="playerTitle">Nothing playing</div>
+          <div class="p-artist" id="playerArtist">Select a track</div>
+        </div>
+        <button class="like-btn" id="likeBtn" onclick="toggleLike()"><i class="far fa-heart"></i></button>
+      </div>
+
+      <div class="player-controls">
+        <div class="control-buttons">
+          <button onclick="prevSong()"><i class="fas fa-step-backward"></i></button>
+          <button class="play-main" id="mainPlayBtn" onclick="togglePlay()"><i class="fas fa-play-circle"></i></button>
+          <button onclick="nextSong()"><i class="fas fa-step-forward"></i></button>
+        </div>
+        <div class="progress-area">
+          <span id="currTime">0:00</span>
+          <div class="progress-bar" id="progressBar" onclick="seek(event)">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <span id="totalTime">0:00</span>
+        </div>
+      </div>
+
+      <div class="player-volume">
+        <i class="fas fa-volume-up"></i>
+        <div class="volume-bar" onclick="setVolume(event)">
+          <div class="volume-fill" id="volumeFill"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <audio id="audioPlayer" crossorigin="anonymous"></audio>
+
+  <script>
+    let playlist = [];
+    let currentIndex = -1;
+    let isPlaying = false;
+    let isLiked = false;
+    const audio = document.getElementById('audioPlayer');
+
+    function handleLogin() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display = 'flex';
+      searchMusic('Chill Vibes');
+    }
+
+    async function handleSearch(event) {
+      if (event.key === 'Enter') {
+        const query = document.getElementById('searchInput').value.trim();
+        if (query) searchMusic(query);
+      }
+    }
+
+    async function searchMusic(query) {
+      document.getElementById('sectionTitle').innerHTML = `Results for "${query}"`;
+      document.getElementById('musicGrid').innerHTML = '';
+      document.getElementById('loadingSpinner').style.display = 'block';
+
+      try {
+        const proxyUrl = 'https://corsproxy.io/?';
+        const apiUrl = `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=30`;
+        
+        const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
+        const data = await response.json();
+
+        if (data.data && data.data.length > 0) {
+          playlist = data.data;
+          renderCards();
+        } else {
+          document.getElementById('musicGrid').innerHTML = '<p style="color:var(--text-muted); grid-column: 1/-1;">No tracks found.</p>';
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('musicGrid').innerHTML = '<p style="color:#f87171; grid-column: 1/-1;">Error connecting to server. Try again.</p>';
+      } finally {
+        document.getElementById('loadingSpinner').style.display = 'none';
+      }
+    }
+
+    function renderCards() {
+      const grid = document.getElementById('musicGrid');
+      grid.innerHTML = '';
+
+      playlist.forEach((track, index) => {
+        const card = document.createElement('div');
+        card.className = 'album-card';
+        card.onclick = () => playSong(index);
+
+        card.innerHTML = `
+          <img class="album-img" src="${track.album.cover_medium}" alt="cover">
+          <div class="play-icon-hover"><i class="fas fa-play" style="margin-left:2px;"></i></div>
+          <div class="album-title">${track.title}</div>
+          <div class="album-artist">${track.artist.name}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function playSong(index) {
+      currentIndex = index;
+      const track = playlist[index];
+
+      document.getElementById('playerTitle').textContent = track.title;
+      document.getElementById('playerArtist').textContent = track.artist.name;
+      document.getElementById('playerArt').src = track.album.cover_medium;
+      
+      isLiked = false;
+      updateLikeUI();
+
+      audio.src = track.preview;
+      audio.play();
+      
+      isPlaying = true;
+      updatePlayUI();
+    }
+
+    function togglePlay() {
+      if (currentIndex === -1) return;
+      if (isPlaying) { audio.pause(); isPlaying = false; } 
+      else { audio.play(); isPlaying = true; }
+      updatePlayUI();
+    }
+
+    function updatePlayUI() {
+      const btn = document.getElementById('mainPlayBtn');
+      btn.innerHTML = isPlaying ? '<i class="fas fa-pause-circle"></i>' : '<i class="fas fa-play-circle"></i>';
+    }
+
+    function nextSong() {
+      if (playlist.length === 0) return;
+      currentIndex = (currentIndex + 1) % playlist.length;
+      playSong(currentIndex);
+    }
+
+    function prevSong() {
+      if (playlist.length === 0) return;
+      currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+      playSong(currentIndex);
+    }
+
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        const percent = (audio.currentTime / audio.duration) * 100;
+        document.getElementById('progressFill').style.width = `${percent}%`;
+        document.getElementById('currTime').textContent = formatTime(audio.currentTime);
+      }
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+      document.getElementById('totalTime').textContent = formatTime(audio.duration);
+    });
+
+    audio.addEventListener('ended', () => nextSong());
+
+    function seek(e) {
+      const bar = document.getElementById('progressBar');
+      const rect = bar.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      if (audio.duration) audio.currentTime = percent * audio.duration;
+    }
+
+    function setVolume(e) {
+      const bar = document.querySelector('.volume-bar');
+      const rect = bar.getBoundingClientRect();
+      const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      audio.volume = percent;
+      document.getElementById('volumeFill').style.width = `${percent * 100}%`;
+    }
+
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return '0:00';
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
+
+    function toggleLike() {
+      isLiked = !isLiked;
+      updateLikeUI();
+    }
+
+    function updateLikeUI() {
+      const btn = document.getElementById('likeBtn');
+      if (isLiked) {
+        btn.classList.add('liked');
+        btn.innerHTML = '<i class="fas fa-heart"></i>';
+      } else {
+        btn.classList.remove('liked');
+        btn.innerHTML = '<i class="far fa-heart"></i>';
+      }
+    }
+
+    document.getElementById('searchInput').addEventListener('keydown', handleSearch);
+  </script>
+</body>
+</html>
+
+On Thu, Oct 29, 2026, 5:06 PM David White <davideugenewhite2011@gmail.com> wrote:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AudioNow · Premium Music</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* --- NEW AUDIONOW BRAND --- */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --bg-base: #0a0a0f;
+      --bg-surface: #121218;
+      --bg-elevated: #1c1c26;
+      --accent-primary: #00e5ff;
+      --accent-secondary: #00ff88;
+      --text-main: #ffffff;
+      --text-muted: #8b8b9f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a2a35; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3f3f50; }
+
+    /* --- GLASSMORPHISM LOGIN --- */
+    #loginScreen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at top left, #001f24, var(--bg-base));
+      display: flex; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .login-box {
+      background: rgba(28, 28, 38, 0.6);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      padding: 50px 40px; border-radius: 24px;
+      text-align: center; width: 420px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .login-box .logo-icon {
+      width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 20px auto;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; color: #000; box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
+    }
+    .login-box h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+    .login-box p { font-size: 14px; color: var(--text-muted); margin-bottom: 30px; }
+    .login-box input {
+      width: 100%; padding: 16px; margin-bottom: 16px;
+      background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); 
+      border-radius: 12px; color: #fff; font-size: 14px; outline: none; transition: 0.2s;
+    }
+    .login-box input:focus { border-color: var(--accent-primary); background: rgba(0,0,0,0.6); }
+    .login-box button {
+      width: 100%; padding: 16px; 
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      color: #000; border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: 0.2s; margin-top: 10px;
+    }
+    .login-box button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 229, 255, 0.3); }
+
+    /* --- MAIN LAYOUT --- */
+    #appScreen { display: none; flex-direction: column; height: 100vh; }
+    .main-layout { display: flex; flex: 1; overflow: hidden; padding: 12px; gap: 12px; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 300px; background: var(--bg-surface); border-radius: 20px;
+      display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(255,255,255,0.03);
+    }
+    .sidebar-header { 
+      padding: 24px; display: flex; align-items: center; gap: 12px; 
+      font-weight: 800; font-size: 18px; letter-spacing: -0.5px;
+    }
+    .sidebar-header i { color: var(--accent-primary); font-size: 24px; }
+    .sidebar-content { flex: 1; overflow-y: auto; padding: 0 12px 12px 12px; }
+    
+    .playlist-item {
+      display: flex; align-items: center; gap: 14px; padding: 10px; border-radius: 12px;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .playlist-item:hover { background: var(--bg-elevated); }
+    .pl-cover { width: 48px; height: 48px; border-radius: 10px; background: #222; object-fit: cover; }
+    .pl-info { flex: 1; min-width: 0; }
+    .pl-title { font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pl-artist { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Main Content */
+    .main-content {
+      flex: 1; background: linear-gradient(160deg, #0d0d14 0%, var(--bg-surface) 100%);
+      border-radius: 20px; display: flex; flex-direction: column; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    
+    .top-bar {
+      padding: 20px 30px; display: flex; align-items: center; gap: 20px;
+      background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(12px); z-index: 10;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .search-container { flex: 1; max-width: 500px; position: relative; }
+    .search-container i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .search-container input {
+      width: 100%; padding: 14px 14px 14px 48px; border-radius: 12px;
+      background: var(--bg-elevated); border: 1px solid transparent;
+      color: #fff; font-size: 15px; outline: none; transition: 0.2s; font-weight: 500;
+    }
+    .search-container input:focus { border-color: rgba(0, 229, 255, 0.4); background: #15151d; }
+
+    .content-scroll { flex: 1; overflow-y: auto; padding: 30px; }
+    .section-title { font-size: 28px; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.5px; }
+    .section-title span { color: var(--accent-primary); }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; }
+    .card {
+      background: transparent; padding: 16px; border-radius: 16px; cursor: pointer;
+      transition: background 0.3s, transform 0.3s; position: relative;
+    }
+    .card:hover { background: var(--bg-elevated); transform: translateY(-4px); }
+    .card-img { 
+      width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: cover; 
+      margin-bottom: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); 
+      transition: transform 0.3s;
+    }
+    .card:hover .card-img { transform: scale(1.02); }
+    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px; }
+    .card-artist { font-size: 14px; color: var(--text-muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .play-btn-hover {
+      position: absolute; right: 28px; bottom: 85px; width: 48px; height: 48px;
+      background: var(--accent-primary); border-radius: 50%; 
+      display: flex; align-items: center; justify-content: center;
+      color: #000; font-size: 18px; opacity: 0; transform: translateY(15px) scale(0.9); 
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 8px 20px rgba(0, 229, 255, 0.4);
+    }
+    .card:hover .play-btn-hover { opacity: 1; transform: translateY(0) scale(1); }
+
+    /* --- BOTTOM PLAYER BAR --- */
+    .player-bar {
+      height: 100px; background: var(--bg-surface); 
+      border-top: 1px solid rgba(255,255,255,0.04);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+      flex-shrink: 0; position: relative; border-radius: 20px; margin: 0 12px 12px 12px;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
+    }
+
+    /* Left: Now Playing */
+    .player-left { width: 30%; display: flex; align-items: center; gap: 16px; min-width: 200px; }
+    .player-art { width: 60px; height: 60px; border-radius: 12px; background: #222; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+    .player-info { display: flex; flex-direction: column; min-width: 0; }
+    .player-title { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .player-artist { font-size: 13px; color: var(--text-muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .like-btn { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; margin-left: 12px; transition: 0.2s; }
+    .like-btn:hover { color: #fff; }
+    .like-btn.liked { color: var(--accent-secondary); text-shadow: 0 0 10px rgba(0,255,136,0.4); }
+
+    /* Center: Controls */
+    .player-center { flex: 1; display: flex; flex-direction: column; align-items: center; max-width: 600px; }
+    .controls { display: flex; align-items: center; gap: 28px; margin-bottom: 10px; }
+    .controls button { background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer; transition: 0.2s; }
+    .controls button:hover { color: #fff; transform: scale(1.1); }
+    .main-play { 
+      font-size: 42px !important; color: #fff !important; 
+      display: flex; align-items: center; justify-content: center;
+      transition: 0.2s; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+    }
+    .main-play:hover { transform: scale(1.1); color: var(--accent-primary) !important; filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.5)); }
+    
+    .progress-wrapper { display: flex; align-items: center; gap: 12px; width: 100%; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .progress-track { flex: 1; height: 6px; background: #2a2a35; border-radius: 4px; cursor: pointer; position: relative; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary)); border-radius: 4px; width: 0%; transition: width 0.1s linear; }
+    .progress-track:hover .progress-fill { filter: brightness(1.2); }
+
+    /* Right: Volume */
+    .player-right { width: 30%; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+    .player-right i { color: var(--text-muted); font-size: 14px; }
+    .volume-track { width: 120px; height: 6px; background: #2a2a35; border-radius: 4px; cursor: pointer; overflow: hidden; }
+    .volume-fill { height: 100%; background: #fff; border-radius: 4px; width: 100%; transition: width 0.1s linear; }
+    .volume-track:hover .volume-fill { background: var(--accent-primary); }
+
+    /* Loading Spinner */
+    .spinner { display: none; text-align: center; padding: 40px; color: var(--accent-primary); font-size: 32px; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <div class="logo-icon"><i class="fas fa-wave-square"></i></div>
+      <h1>AudioNow</h1>
+      <p>Your world. Your sound. Right now.</p>
+      
+      <input type="text" id="loginUser" placeholder="Email address">
+      <input type="password" id="loginPass" placeholder="Password">
+      <button onclick="handleLogin()">Enter AudioNow</button>
+      
+      <p style="margin-top: 25px; font-size: 12px; color: var(--text-muted); cursor: pointer;" onclick="handleLogin()">
+        Continue as Guest &rarr;
+      </p>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="appScreen">
+    
+    <div class="main-layout">
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <i class="fas fa-wave-square"></i> AudioNow
+        </div>
+        <div class="sidebar-content" id="sidebarPlaylist">
+          <p style="padding: 20px; font-size: 13px; color: var(--text-muted); text-align: center; font-weight: 500;">
+            Search for songs to build your library.
+          </p>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <div class="main-content">
+        <div class="top-bar">
+          <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search millions of songs, artists, and albums..." onkeydown="handleSearch(event)">
+          </div>
+        </div>
+
+        <div class="content-scroll">
+          <h2 class="section-title" id="sectionTitle">Discover <span>New Music</span></h2>
+          <div class="grid" id="musicGrid">
+            <!-- Music Cards will load here -->
+          </div>
+          <div class="spinner" id="loadingSpinner"><i class="fas fa-circle-notch fa-spin"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM PLAYER BAR -->
+    <div class="player-bar">
+      <!-- Left -->
+      <div class="player-left">
+        <img id="playerArt" class="player-art" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="cover">
+        <div class="player-info">
+          <div class="player-title" id="playerTitle">Nothing playing</div>
+          <div class="player-artist" id="playerArtist">Select a track</div>
+        </div>
+        <button class="like-btn" id="likeBtn" onclick="toggleLike()"><i class="far fa-heart"></i></button>
+      </div>
+
+      <!-- Center -->
+      <div class="player-center">
+        <div class="controls">
+          <button><i class="fas fa-random"></i></button>
+          <button onclick="prevSong()"><i class="fas fa-step-backward"></i></button>
+          <button class="main-play" id="mainPlayBtn" onclick="togglePlay()"><i class="fas fa-play-circle"></i></button>
+          <button onclick="nextSong()"><i class="fas fa-step-forward"></i></button>
+          <button><i class="fas fa-redo"></i></button>
+        </div>
+        <div class="progress-wrapper">
+          <span id="currTime">0:00</span>
+          <div class="progress-track" id="progressTrack" onclick="seek(event)">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <span id="totalTime">0:00</span>
+        </div>
+      </div>
+
+      <!-- Right -->
+      <div class="player-right">
+        <i class="fas fa-volume-up"></i>
+        <div class="volume-track" onclick="setVolume(event)">
+          <div class="volume-fill" id="volumeFill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Audio Player -->
+  <audio id="audioPlayer" crossorigin="anonymous"></audio>
+
+  <script>
+    // --- STATE & VARIABLES ---
+    let playlist = [];
+    let currentIndex = -1;
+    let isPlaying = false;
+    let isLiked = false;
+
+    const audio = document.getElementById('audioPlayer');
+
+    // --- LOGIN LOGIC ---
+    function handleLogin() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display = 'flex';
+      
+      // Load default trending tracks on login
+      searchMusic('Top Hits 2024');
+    }
+
+    // --- SEARCH & API LOGIC ---
+    async function handleSearch(event) {
+      if (event.key === 'Enter') {
+        const query = document.getElementById('searchInput').value.trim();
+        if (query) searchMusic(query);
+      }
+    }
+
+    async function searchMusic(query) {
+      document.getElementById('sectionTitle').innerHTML = `Results for <span>"${query}"</span>`;
+      document.getElementById('musicGrid').innerHTML = '';
+      document.getElementById('loadingSpinner').style.display = 'block';
+
+      try {
+        const proxyUrl = 'https://corsproxy.io/?';
+        const apiUrl = `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=40`;
+        
+        const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
+        const data = await response.json();
+
+        if (data.data && data.data.length > 0) {
+          playlist = data.data;
+          renderCards();
+        } else {
+          document.getElementById('musicGrid').innerHTML = '<p style="color:var(--text-muted); grid-column: 1/-1;">No tracks found.</p>';
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('musicGrid').innerHTML = '<p style="color:#ff4444; grid-column: 1/-1;">Error connecting to music server. Try again.</p>';
+      } finally {
+        document.getElementById('loadingSpinner').style.display = 'none';
+      }
+    }
+
+    // --- RENDER UI ---
+    function renderCards() {
+      const grid = document.getElementById('musicGrid');
+      grid.innerHTML = '';
+
+      playlist.forEach((track, index) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => playSong(index);
+
+        card.innerHTML = `
+          <img class="card-img" src="${track.album.cover_medium}" alt="cover">
+          <div class="play-btn-hover"><i class="fas fa-play" style="margin-left:3px;"></i></div>
+          <div class="card-title">${track.title}</div>
+          <div class="card-artist">${track.artist.name}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // --- PLAYBACK LOGIC ---
+    function playSong(index) {
+      currentIndex = index;
+      const track = playlist[index];
+
+      document.getElementById('playerTitle').textContent = track.title;
+      document.getElementById('playerArtist').textContent = track.artist.name;
+      document.getElementById('playerArt').src = track.album.cover_medium;
+      
+      isLiked = false;
+      updateLikeUI();
+
+      audio.src = track.preview;
+      audio.play();
+      
+      isPlaying = true;
+      updatePlayUI();
+      
+      addToSidebar(track);
+    }
+
+    function togglePlay() {
+      if (currentIndex === -1) return;
+      
+      if (isPlaying) {
+        audio.pause();
+        isPlaying = false;
+      } else {
+        audio.play();
+        isPlaying = true;
+      }
+      updatePlayUI();
+    }
+
+    function updatePlayUI() {
+      const btn = document.getElementById('mainPlayBtn');
+      if (isPlaying) {
+        btn.innerHTML = '<i class="fas fa-pause-circle"></i>';
+      } else {
+        btn.innerHTML = '<i class="fas fa-play-circle"></i>';
+      }
+    }
+
+    function nextSong() {
+      if (playlist.length === 0) return;
+      currentIndex = (currentIndex + 1) % playlist.length;
+      playSong(currentIndex);
+    }
+
+    function prevSong() {
+      if (playlist.length === 0) return;
+      currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+      playSong(currentIndex);
+    }
+
+    // --- AUDIO EVENTS ---
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        const percent = (audio.currentTime / audio.duration) * 100;
+        document.getElementById('progressFill').style.width = `${percent}%`;
+        document.getElementById('currTime').textContent = formatTime(audio.currentTime);
+      }
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+      document.getElementById('totalTime').textContent = formatTime(audio.duration);
+    });
+
+    audio.addEventListener('ended', () => {
+      nextSong();
+    });
+
+    // --- SEEKING & VOLUME ---
+    function seek(e) {
+      const track = document.getElementById('progressTrack');
+      const rect = track.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percent = clickX / rect.width;
+      if (audio.duration) audio.currentTime = percent * audio.duration;
+    }
+
+    function setVolume(e) {
+      const track = document.querySelector('.volume-track');
+      const rect = track.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percent = Math.max(0, Math.min(1, clickX / rect.width));
+      audio.volume = percent;
+      document.getElementById('volumeFill').style.width = `${percent * 100}%`;
+    }
+
+    // --- UTILS ---
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return '0:00';
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
+
+    function toggleLike() {
+      isLiked = !isLiked;
+      updateLikeUI();
+    }
+
+    function updateLikeUI() {
+      const btn = document.getElementById('likeBtn');
+      if (isLiked) {
+        btn.classList.add('liked');
+        btn.innerHTML = '<i class="fas fa-heart"></i>';
+      } else {
+        btn.classList.remove('liked');
+        btn.innerHTML = '<i class="far fa-heart"></i>';
+      }
+    }
+
+    // --- SIDEBAR LOGIC ---
+    const sidebarSongs = new Set();
+    function addToSidebar(track) {
+      if (sidebarSongs.has(track.id)) return;
+      sidebarSongs.add(track.id);
+
+      const sidebar = document.getElementById('sidebarPlaylist');
+      if (sidebarSongs.size === 1) sidebar.innerHTML = '';
+
+      const item = document.createElement('div');
+      item.className = 'playlist-item';
+      item.innerHTML = `
+        <img class="pl-cover" src="${track.album.cover_small}">
+        <div class="pl-info">
+          <div class="pl-title">${track.title}</div>
+          <div class="pl-artist">${track.artist.name}</div>
+        </div>
+      `;
+      item.onclick = () => {
+        audio.src = track.preview;
+        document.getElementById('playerTitle').textContent = track.title;
+        document.getElementById('playerArtist').textContent = track.artist.name;
+        document.getElementById('playerArt').src = track.album.cover_medium;
+        audio.play();
+        isPlaying = true;
+        updatePlayUI();
+      };
+      sidebar.appendChild(item);
+    }
+
+    document.getElementById('searchInput').addEventListener('keydown', handleSearch);
+  </script>
+</body>
+</html>
+
+On Thu, Oct 29, 2026, 5:02 PM David White <davideugenewhite2011@gmail.com> wrote:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Clone</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* Base Styles */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Circular', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #5a5a5a; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: #888; }
+
+    /* --- LOGIN SCREEN --- */
+    #loginScreen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, #1f1f1f, #000);
+      display: flex; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .login-box {
+      background: #121212; padding: 50px 40px; border-radius: 12px;
+      text-align: center; width: 400px; border: 1px solid #282828;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+    .login-box i { font-size: 50px; color: #1db954; margin-bottom: 20px; }
+    .login-box h1 { font-size: 28px; margin-bottom: 30px; }
+    .login-box input {
+      width: 100%; padding: 14px; margin-bottom: 15px;
+      background: #121212; border: 1px solid #404040; border-radius: 4px;
+      color: #fff; font-size: 14px; outline: none;
+    }
+    .login-box input:focus { border-color: #fff; }
+    .login-box button {
+      width: 100%; padding: 14px; background: #1db954; color: #000;
+      border: none; border-radius: 30px; font-size: 16px; font-weight: bold;
+      cursor: pointer; margin-top: 10px; transition: 0.2s;
+    }
+    .login-box button:hover { background: #1ed760; transform: scale(1.02); }
+
+    /* --- MAIN APP LAYOUT --- */
+    #appScreen { display: none; flex-direction: column; height: 100vh; }
+    
+    .main-layout { display: flex; flex: 1; overflow: hidden; padding: 8px; gap: 8px; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px; background: #121212; border-radius: 8px;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .sidebar-header { padding: 20px; display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 16px; color: #b3b3b3; }
+    .sidebar-header i { font-size: 24px; }
+    .sidebar-content { flex: 1; overflow-y: auto; padding: 0 10px; }
+    
+    .playlist-item {
+      display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 6px;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .playlist-item:hover { background: #282828; }
+    .playlist-item.active { background: #333; }
+    .pl-cover { width: 48px; height: 48px; border-radius: 4px; background: #333; object-fit: cover; }
+    .pl-info { flex: 1; min-width: 0; }
+    .pl-title { font-size: 14px; font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pl-artist { font-size: 12px; color: #b3b3b3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1; background: linear-gradient(180deg, #1f1f1f 0%, #121212 100%);
+      border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;
+    }
+    
+    .top-bar {
+      padding: 16px 24px; display: flex; align-items: center; gap: 15px;
+      background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); z-index: 10;
+    }
+    .search-container {
+      flex: 1; max-width: 400px; position: relative;
+    }
+    .search-container i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #000; }
+    .search-container input {
+      width: 100%; padding: 12px 12px 12px 45px; border-radius: 30px;
+      border: none; font-size: 14px; outline: none; font-weight: 500;
+    }
+
+    .content-scroll { flex: 1; overflow-y: auto; padding: 24px; }
+    .section-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+    .card {
+      background: #181818; padding: 16px; border-radius: 8px; cursor: pointer;
+      transition: background 0.3s; position: relative;
+    }
+    .card:hover { background: #282828; }
+    .card-img { width: 100%; aspect-ratio: 1; border-radius: 6px; object-fit: cover; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+    .card-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-artist { font-size: 14px; color: #b3b3b3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .play-btn-hover {
+      position: absolute; right: 24px; bottom: 80px; width: 48px; height: 48px;
+      background: #1db954; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      color: #000; font-size: 20px; opacity: 0; transform: translateY(10px); transition: all 0.3s;
+      box-shadow: 0 8px 8px rgba(0,0,0,0.3);
+    }
+    .card:hover .play-btn-hover { opacity: 1; transform: translateY(0); }
+
+    /* --- BOTTOM PLAYER BAR --- */
+    .player-bar {
+      height: 90px; background: #181818; border-top: 1px solid #282828;
+      display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+      flex-shrink: 0;
+    }
+
+    /* Left: Now Playing info */
+    .player-left { width: 30%; display: flex; align-items: center; gap: 15px; min-width: 180px; }
+    .player-art { width: 56px; height: 56px; border-radius: 6px; background: #333; object-fit: cover; }
+    .player-info { display: flex; flex-direction: column; min-width: 0; }
+    .player-title { font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .player-artist { font-size: 12px; color: #b3b3b3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .like-btn { background: none; border: none; color: #b3b3b3; font-size: 18px; cursor: pointer; margin-left: 10px; }
+    .like-btn.liked { color: #1db954; }
+
+    /* Center: Controls */
+    .player-center { flex: 1; display: flex; flex-direction: column; align-items: center; max-width: 600px; }
+    .controls { display: flex; align-items: center; gap: 25px; margin-bottom: 8px; }
+    .controls button { background: none; border: none; color: #b3b3b3; font-size: 16px; cursor: pointer; transition: color 0.2s; }
+    .controls button:hover { color: #fff; }
+    .main-play { font-size: 36px !important; color: #fff !important; }
+    .main-play:hover { transform: scale(1.05); }
+    
+    .progress-wrapper { display: flex; align-items: center; gap: 10px; width: 100%; font-size: 12px; color: #b3b3b3; }
+    .progress-track { flex: 1; height: 4px; background: #5a5a5a; border-radius: 2px; cursor: pointer; position: relative; }
+    .progress-fill { height: 100%; background: #fff; border-radius: 2px; width: 0%; }
+    .progress-track:hover .progress-fill { background: #1db954; }
+
+    /* Right: Volume */
+    .player-right { width: 30%; display: flex; align-items: center; justify-content: flex-end; gap: 15px; }
+    .volume-track { width: 100px; height: 4px; background: #5a5a5a; border-radius: 2px; cursor: pointer; }
+    .volume-fill { height: 100%; background: #fff; border-radius: 2px; width: 100%; }
+    .volume-track:hover .volume-fill { background: #1db954; }
+
+    /* Loading Spinner */
+    .spinner { display: none; text-align: center; padding: 40px; color: #b3b3b3; font-size: 24px; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <i class="fab fa-spotify"></i>
+      <h1>Log in to Spotify</h1>
+      <input type="text" id="loginUser" placeholder="Username or email">
+      <input type="password" id="loginPass" placeholder="Password">
+      <button onclick="handleLogin()">Log In</button>
+      <p style="margin-top: 20px; font-size: 12px; color: #b3b3b3;">No account? Just click Log In!</p>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="appScreen">
+    
+    <div class="main-layout">
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <i class="fab fa-spotify" style="color:#fff;"></i> Your Library
+        </div>
+        <div class="sidebar-content" id="sidebarPlaylist">
+          <!-- Playlists will be added here -->
+          <p style="padding: 15px; font-size: 14px; color: #b3b3b3; text-align: center;">Search for songs to add them to your library.</p>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <div class="main-content">
+        <div class="top-bar">
+          <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="What do you want to listen to?" onkeydown="handleSearch(event)">
+          </div>
+        </div>
+
+        <div class="content-scroll">
+          <h2 class="section-title" id="sectionTitle">Trending Now</h2>
+          <div class="grid" id="musicGrid">
+            <!-- Music Cards will load here -->
+          </div>
+          <div class="spinner" id="loadingSpinner"><i class="fas fa-spinner fa-spin"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM PLAYER BAR -->
+    <div class="player-bar">
+      <!-- Left -->
+      <div class="player-left">
+        <img id="playerArt" class="player-art" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="cover">
+        <div class="player-info">
+          <div class="player-title" id="playerTitle">No song playing</div>
+          <div class="player-artist" id="playerArtist">Select a song</div>
+        </div>
+        <button class="like-btn" id="likeBtn" onclick="toggleLike()"><i class="far fa-heart"></i></button>
+      </div>
+
+      <!-- Center -->
+      <div class="player-center">
+        <div class="controls">
+          <button><i class="fas fa-random"></i></button>
+          <button onclick="prevSong()"><i class="fas fa-step-backward"></i></button>
+          <button class="main-play" id="mainPlayBtn" onclick="togglePlay()"><i class="fas fa-play-circle"></i></button>
+          <button onclick="nextSong()"><i class="fas fa-step-forward"></i></button>
+          <button><i class="fas fa-redo"></i></button>
+        </div>
+        <div class="progress-wrapper">
+          <span id="currTime">0:00</span>
+          <div class="progress-track" id="progressTrack" onclick="seek(event)">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <span id="totalTime">0:00</span>
+        </div>
+      </div>
+
+      <!-- Right -->
+      <div class="player-right">
+        <i class="fas fa-volume-up" style="color:#b3b3b3; font-size:14px;"></i>
+        <div class="volume-track" onclick="setVolume(event)">
+          <div class="volume-fill" id="volumeFill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Audio Player -->
+  <audio id="audioPlayer" crossorigin="anonymous"></audio>
+
+  <script>
+    // --- STATE & VARIABLES ---
+    let playlist = [];
+    let currentIndex = -1;
+    let isPlaying = false;
+    let isLiked = false;
+    let currentSearchQuery = "Top Hits"; // Default search
+
+    const audio = document.getElementById('audioPlayer');
+
+    // --- LOGIN LOGIC ---
+    function handleLogin() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display = 'flex';
+      // Load default songs on login
+      searchMusic('Drake');
+    }
+
+    // --- SEARCH & API LOGIC (Deezer API) ---
+    async function handleSearch(event) {
+      if (event.key === 'Enter') {
+        const query = document.getElementById('searchInput').value.trim();
+        if (query) searchMusic(query);
+      }
+    }
+
+    async function searchMusic(query) {
+      document.getElementById('sectionTitle').textContent = `Search results for "${query}"`;
+      document.getElementById('musicGrid').innerHTML = '';
+      document.getElementById('loadingSpinner').style.display = 'block';
+
+      try {
+        // Deezer API endpoint
+        // Note: Deezer requires JSONP or a proxy due to CORS. We will use a public CORS proxy to make it work directly in the browser.
+        const proxyUrl = 'https://corsproxy.io/?';
+        const apiUrl = `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=30`;
+        
+        const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
+        const data = await response.json();
+
+        if (data.data && data.data.length > 0) {
+          playlist = data.data; // Store the list of tracks
+          renderCards();
+        } else {
+          document.getElementById('musicGrid').innerHTML = '<p style="color:#b3b3b3;">No results found.</p>';
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('musicGrid').innerHTML = '<p style="color:#ff4444;">Error connecting to music server. Try again.</p>';
+      } finally {
+        document.getElementById('loadingSpinner').style.display = 'none';
+      }
+    }
+
+    // --- RENDER UI ---
+    function renderCards() {
+      const grid = document.getElementById('musicGrid');
+      grid.innerHTML = '';
+
+      playlist.forEach((track, index) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => playSong(index);
+
+        card.innerHTML = `
+          <img class="card-img" src="${track.album.cover_medium}" alt="cover">
+          <div class="play-btn-hover"><i class="fas fa-play"></i></div>
+          <div class="card-title">${track.title}</div>
+          <div class="card-artist">${track.artist.name}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // --- PLAYBACK LOGIC ---
+    function playSong(index) {
+      currentIndex = index;
+      const track = playlist[index];
+
+      // Update player bar UI
+      document.getElementById('playerTitle').textContent = track.title;
+      document.getElementById('playerArtist').textContent = track.artist.name;
+      document.getElementById('playerArt').src = track.album.cover_medium;
+      
+      // Reset like button
+      isLiked = false;
+      updateLikeUI();
+
+      // Load audio
+      // Deezer provides a 30-second preview MP3 for free
+      audio.src = track.preview;
+      audio.play();
+      
+      isPlaying = true;
+      updatePlayUI();
+      
+      // Add to sidebar library
+      addToSidebar(track);
+    }
+
+    function togglePlay() {
+      if (currentIndex === -1) return; // No song loaded
+      
+      if (isPlaying) {
+        audio.pause();
+        isPlaying = false;
+      } else {
+        audio.play();
+        isPlaying = true;
+      }
+      updatePlayUI();
+    }
+
+    function updatePlayUI() {
+      const btn = document.getElementById('mainPlayBtn');
+      if (isPlaying) {
+        btn.innerHTML = '<i class="fas fa-pause-circle"></i>';
+      } else {
+        btn.innerHTML = '<i class="fas fa-play-circle"></i>';
+      }
+    }
+
+    function nextSong() {
+      if (playlist.length === 0) return;
+      currentIndex = (currentIndex + 1) % playlist.length;
+      playSong(currentIndex);
+    }
+
+    function prevSong() {
+      if (playlist.length === 0) return;
+      currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+      playSong(currentIndex);
+    }
+
+    // --- AUDIO EVENTS ---
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        const percent = (audio.currentTime / audio.duration) * 100;
+        document.getElementById('progressFill').style.width = `${percent}%`;
+        document.getElementById('currTime').textContent = formatTime(audio.currentTime);
+      }
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+      document.getElementById('totalTime').textContent = formatTime(audio.duration);
+    });
+
+    audio.addEventListener('ended', () => {
+      nextSong();
+    });
+
+    // --- SEEKING & VOLUME ---
+    function seek(e) {
+      const track = document.getElementById('progressTrack');
+      const rect = track.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percent = clickX / rect.width;
+      if (audio.duration) audio.currentTime = percent * audio.duration;
+    }
+
+    function setVolume(e) {
+      const track = document.querySelector('.volume-track');
+      const rect = track.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percent = Math.max(0, Math.min(1, clickX / rect.width));
+      audio.volume = percent;
+      document.getElementById('volumeFill').style.width = `${percent * 100}%`;
+    }
+
+    // --- UTILS ---
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return '0:00';
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
+
+    function toggleLike() {
+      isLiked = !isLiked;
+      updateLikeUI();
+    }
+
+    function updateLikeUI() {
+      const btn = document.getElementById('likeBtn');
+      if (isLiked) {
+        btn.classList.add('liked');
+        btn.innerHTML = '<i class="fas fa-heart"></i>';
+      } else {
+        btn.classList.remove('liked');
+        btn.innerHTML = '<i class="far fa-heart"></i>';
+      }
+    }
+
+    // --- SIDEBAR LOGIC ---
+    const sidebarSongs = new Set(); // Prevent duplicates
+    function addToSidebar(track) {
+      if (sidebarSongs.has(track.id)) return;
+      sidebarSongs.add(track.id);
+
+      const sidebar = document.getElementById('sidebarPlaylist');
+      
+      // Remove the "Search for songs..." text if it exists
+      if (sidebarSongs.size === 1) sidebar.innerHTML = '';
+
+      const item = document.createElement('div');
+      item.className = 'playlist-item';
+      item.innerHTML = `
+        <img class="pl-cover" src="${track.album.cover_small}">
+        <div class="pl-info">
+          <div class="pl-title">${track.title}</div>
+          <div class="pl-artist">${track.artist.name}</div>
+        </div>
+      `;
+      // Find track in global playlist to get index, or just play preview directly
+      item.onclick = () => {
+        audio.src = track.preview;
+        document.getElementById('playerTitle').textContent = track.title;
+        document.getElementById('playerArtist').textContent = track.artist.name;
+        document.getElementById('playerArt').src = track.album.cover_medium;
+        audio.play();
+        isPlaying = true;
+        updatePlayUI();
+      };
+      sidebar.appendChild(item);
+    }
+
+    // Handle enter key for search
+    document.getElementById('searchInput').addEventListener('keydown', handleSearch);
+  </script>
+</body>
+</html>
+
+On Thu, Oct 29, 2026, 4:48 PM David White <davideugenewhite2011@gmail.com> wrote:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AirTime</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  body { background:#36393f; color:#dcddde; font-family: system-ui, sans-serif; }
+  .input { width:100%; padding:10px 14px; background:#202225; border:1px solid #40444b;
+           border-radius:6px; color:#dcddde; font-size:14px; outline:none; }
+  .input:focus { border-color:#5865f2; }
+  .input::placeholder { color:#72767d; }
+  .btn { background:#5865f2; color:white; padding:11px; border-radius:6px;
+         font-weight:600; font-size:14px; width:100%; cursor:pointer; border:none; }
+  .btn:hover { background:#4752c4; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .tab-active { background:#40444b; color:white; }
+  .tab-inactive { color:#b9bbbe; }
+  .student-item:hover { background:#36393f; }
+  .student-item.active { background:#40444b; border-left:3px solid #5865f2; }
+</style>
+</head>
+<body class="h-screen flex flex-col">
+
+<!-- ================= AUTH ================= -->
+<div id="authScreen" class="flex-1 flex items-center justify-center p-4">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-6">
+      <div class="w-16 h-16 bg-[#5865f2] rounded-2xl inline-flex items-center justify-center text-white font-bold text-3xl mb-3">A</div>
+      <h1 class="text-2xl font-bold text-white">AirTime</h1>
+      <p class="text-sm text-[#b9bbbe]">School direct messaging</p>
+    </div>
+
+    <div class="bg-[#2f3136] rounded-lg p-6 shadow-2xl">
+      <div class="flex mb-5 bg-[#202225] rounded-md p-1">
+        <button type="button" id="tabLogin" class="flex-1 py-2 text-sm font-medium rounded-md tab-active">Log In</button>
+        <button type="button" id="tabSignup" class="flex-1 py-2 text-sm font-medium rounded-md tab-inactive">Sign Up</button>
+      </div>
+
+      <div id="banner" class="hidden mb-4 p-3 rounded-md text-sm"></div>
+
+      <!-- LOGIN -->
+      <form id="loginForm" class="space-y-3">
+        <input id="loginUser" class="input" placeholder="Username" autocomplete="username" required>
+        <input id="loginPass" class="input" type="password" placeholder="Password" autocomplete="current-password" required>
+        <button type="submit" id="loginBtn" class="btn">Log In</button>
+      </form>
+
+      <!-- SIGNUP -->
+      <form id="signupForm" class="space-y-3 hidden">
+        <input id="signupName" class="input" placeholder="Full name" required>
+        <input id="signupUser" class="input" placeholder="Username (no spaces)" required>
+        <select id="signupGrade" class="input" required>
+          <option value="">Select grade</option>
+          <option value="6">Grade 6</option><option value="7">Grade 7</option>
+          <option value="8">Grade 8</option><option value="9">Grade 9</option>
+          <option value="10">Grade 10</option><option value="11">Grade 11</option>
+          <option value="12">Grade 12</option>
+        </select>
+        <input id="signupPass" class="input" type="password" placeholder="Password (6+ chars)" minlength="6" required>
+        <button type="submit" id="signupBtn" class="btn">Create Account</button>
+      </form>
+
+      <hr class="my-5 border-[#40444b]">
+      <p class="text-xs text-[#72767d] mb-2 text-center">Testing quickly?</p>
+      <button type="button" id="quickBtn" class="btn" style="background:#3ba55d">Create Test Account & Log In</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="appScreen" style="display:none" class="flex-1 flex-col overflow-hidden">
+  <header class="bg-[#202225] px-6 py-2.5 flex items-center flex-shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 bg-[#5865f2] rounded-lg flex items-center justify-center text-white font-bold">A</div>
+      <h1 class="font-semibold text-white">AirTime</h1>
+    </div>
+    <div class="ml-auto flex items-center gap-4">
+      <span class="text-sm text-[#b9bbbe]"><span id="meName">—</span> · Grade <span id="meGrade">—</span></span>
+      <div id="meAvatar" class="w-8 h-8 rounded-full bg-[#5865f2] flex items-center justify-center text-white text-sm font-medium">?</div>
+      <button type="button" id="logoutBtn" class="text-[#b9bbbe] hover:text-white"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden">
+    <aside class="w-80 bg-[#2f3136] border-r border-[#202225] flex flex-col overflow-hidden">
+      <div class="p-3 border-b border-[#202225]">
+        <input id="search" class="w-full px-3 py-2 bg-[#202225] rounded-md text-sm text-[#dcddde] placeholder-[#72767d] outline-none" placeholder="Find a student...">
+      </div>
+      <div id="studentList" class="flex-1 overflow-y-auto p-1.5"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col bg-[#36393f] overflow-hidden">
+      <div class="border-b border-[#202225] px-6 py-3 flex items-center gap-4 flex-shrink-0">
+        <div id="hAvatar" class="w-9 h-9 rounded-full bg-[#40444b] text-[#b9bbbe] flex items-center justify-center"><i class="fas fa-comment"></i></div>
+        <div>
+          <h2 id="hName" class="font-semibold text-white">Select a student</h2>
+          <p id="hUser" class="text-xs text-[#b9bbbe]">Pick someone from the directory</p>
+        </div>
+        <div id="hStatus" class="ml-auto hidden items-center gap-2"></div>
+      </div>
+
+      <div id="messages" class="flex-1 overflow-y-auto px-6 py-4 space-y-2">
+        <div id="emptyChat" class="h-full flex flex-col items-center justify-center text-center text-[#72767d]">
+          <i class="fas fa-comments text-4xl mb-3"></i>
+          <p class="font-medium text-[#b9bbbe]">Your messages</p>
+          <p class="text-sm">Pick a student to start chatting.</p>
+        </div>
+      </div>
+
+      <div class="border-t border-[#202225] p-4 flex-shrink-0">
+        <div class="flex gap-3">
+          <input id="msgInput" class="flex-1 bg-[#40444b] rounded-lg px-4 py-3 text-sm text-[#dcddde] placeholder-[#72767d] outline-none" placeholder="Message..." disabled>
+          <button type="button" id="sendBtn" class="bg-[#5865f2] hover:bg-[#4752c4] text-white rounded-lg w-12 h-12 flex items-center justify-center" disabled>
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ---------- STATE ----------
+  var currentUser = null;
+  var selectedUser = null;
+  var allStudents = [];
+  var socket = null;
+  var online = new Set();
+
+  // ---------- SHORTCUTS ----------
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+  function initials(n) {
+    return String(n).split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+  }
+
+  // ---------- BANNER ----------
+  function banner(msg, type) {
+    var el = $('banner');
+    el.className = 'mb-4 p-3 rounded-md text-sm ' + (type === 'success'
+      ? 'bg-green-900/40 border border-green-700 text-green-300'
+      : 'bg-red-900/40 border border-red-700 text-red-300');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+  }
+  function clearBanner() { $('banner').classList.add('hidden'); }
+
+  // ---------- TAB SWITCH ----------
+  $('tabLogin').onclick = function() {
+    $('tabLogin').className = 'flex-1 py-2 text-sm font-medium rounded-md tab-active';
+    $('tabSignup').className = 'flex-1 py-2 text-sm font-medium rounded-md tab-inactive';
+    $('loginForm').classList.remove('hidden');
+    $('signupForm').classList.add('hidden');
+    clearBanner();
+  };
+  $('tabSignup').onclick = function() {
+    $('tabSignup').className = 'flex-1 py-2 text-sm font-medium rounded-md tab-active';
+    $('tabLogin').className = 'flex-1 py-2 text-sm font-medium rounded-md tab-inactive';
+    $('signupForm').classList.remove('hidden');
+    $('loginForm').classList.add('hidden');
+    clearBanner();
+  };
+
+  // ---------- POST HELPER ----------
+  function post(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(body)
+    }).then(function(res) {
+      return res.json().catch(function(){ return {}; }).then(function(data) {
+        return { ok: res.ok, status: res.status, data: data };
+      });
+    });
+  }
+
+  // ---------- LOGIN ----------
+  $('loginForm').onsubmit = function(e) {
+    e.preventDefault();
+    clearBanner();
+    var btn = $('loginBtn');
+    btn.disabled = true; btn.textContent = 'Logging in...';
+    var username = $('loginUser').value.trim();
+    var password = $('loginPass').value;
+
+    post('/api/login', { username: username, password: password })
+      .then(function(r) {
+        if (!r.ok) {
+          throw new Error(r.data.error || ('Login failed (HTTP ' + r.status + ')'));
+        }
+        currentUser = r.data;
+        return enterApp();
+      })
+      .catch(function(err) {
+        banner(err.message || 'Could not connect to server. Is `node server.js` running?');
+      })
+      .finally(function() {
+        btn.disabled = false; btn.textContent = 'Log In';
+      });
+  };
+
+  // ---------- SIGNUP ----------
+  $('signupForm').onsubmit = function(e) {
+    e.preventDefault();
+    clearBanner();
+    var btn = $('signupBtn');
+    btn.disabled = true; btn.textContent = 'Creating...';
+
+    var payload = {
+      name: $('signupName').value.trim(),
+      username: $('signupUser').value.trim().toLowerCase(),
+      password: $('signupPass').value,
+      grade: parseInt($('signupGrade').value, 10)
+    };
+
+    if (!payload.name || !payload.username || !payload.password || !payload.grade) {
+      banner('Please fill in every field.');
+      btn.disabled = false; btn.textContent = 'Create Account';
+      return;
+    }
+
+    post('/api/signup', payload)
+      .then(function(r) {
+        if (!r.ok) throw new Error(r.data.error || ('Signup failed (HTTP ' + r.status + ')'));
+        currentUser = r.data;
+        return enterApp();
+      })
+      .catch(function(err) {
+        banner(err.message || 'Could not connect to server. Is `node server.js` running?');
+      })
+      .finally(function() {
+        btn.disabled = false; btn.textContent = 'Create Account';
+      });
+  };
+
+  // ---------- QUICK TEST ACCOUNT ----------
+  $('quickBtn').onclick = function() {
+    clearBanner();
+    var btn = $('quickBtn');
+    btn.disabled = true; btn.textContent = 'Creating...';
+
+    var suffix = Math.floor(Math.random() * 100000);
+    var payload = {
+      name: 'Test Student ' + suffix,
+      username: 'test' + suffix,
+      password: 'test123',
+      grade: 11
+    };
+
+    post('/api/signup', payload)
+      .then(function(r) {
+        if (!r.ok) throw new Error(r.data.error || ('HTTP ' + r.status));
+        currentUser = r.data;
+        return enterApp();
+      })
+      .catch(function(err) {
+        banner('Quick account failed: ' + err.message);
+      })
+      .finally(function() {
+        btn.disabled = false; btn.textContent = 'Create Test Account & Log In';
+      });
+  };
+
+  // ---------- ENTER APP ----------
+  function enterApp() {
+    $('authScreen').style.display = 'none';
+    $('appScreen').style.display = 'flex';
+
+    $('meName').textContent = currentUser.name;
+    $('meGrade').textContent = currentUser.grade;
+    $('meAvatar').textContent = initials(currentUser.name);
+
+    loadDirectory();
+    connectSocket();
+
+    $('msgInput').disabled = true;
+    $('sendBtn').disabled = true;
+  }
+
+  // ---------- LOGOUT ----------
+  $('logoutBtn').onclick = function() {
+    fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+    if (socket) socket.disconnect();
+    currentUser = null; selectedUser = null; allStudents = []; online.clear();
+    $('appScreen').style.display = 'none';
+    $('authScreen').style.display = 'flex';
+    $('msgInput').value = '';
+    $('search').value = '';
+    $('messages').innerHTML = '<div id="emptyChat" class="h-full flex flex-col items-center justify-center text-center text-[#72767d]"><i class="fas fa-comments text-4xl mb-3"></i><p class="font-medium text-[#b9bbbe]">Your messages</p><p class="text-sm">Pick a student to start chatting.</p></div>';
+  };
+
+  // ---------- LOAD DIRECTORY ----------
+  function loadDirectory() {
+    fetch('/api/users', { credentials: 'same-origin' })
+      .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(users) {
+        allStudents = users;
+        renderDirectory();
+      })
+      .catch(function(err) {
+        console.error('Directory load failed:', err);
+        $('studentList').innerHTML = '<div class="p-4 text-red-400 text-sm text-center">Could not load students. Server error.</div>';
+      });
+  }
+
+  function renderDirectory() {
+    var list = $('studentList');
+    list.innerHTML = '';
+
+    if (allStudents.length === 0) {
+      list.innerHTML = '<div class="p-6 text-center text-[#72767d] text-sm"><i class="fas fa-users text-2xl mb-2 block"></i>No other students yet.<br>Sign up in another window.</div>';
+      return;
+    }
+
+    allStudents.forEach(function(s) {
+      var isOnline = online.has(s.username);
+      var el = document.createElement('div');
+      el.className = 'student-item px-3 py-2 rounded-lg flex items-center gap-3 cursor-pointer';
+      el.dataset.username = s.username;
+      el.dataset.name = s.name;
+      el.dataset.grade = s.grade;
+      el.innerHTML = '<div class="w-9 h-9 rounded-full bg-[#5865f2] text-white flex items-center justify-center text-sm font-medium">' + initials(s.name) + '</div>' +
+        '<div class="flex-1 min-w-0"><p class="text-sm text-[#dcddde] truncate">' + esc(s.name) + '</p>' +
+        '<p class="text-xs text-[#b9bbbe] truncate">@' + esc(s.username) + ' · G' + s.grade + '</p></div>' +
+        '<span class="w-2 h-2 rounded-full ' + (isOnline ? 'bg-green-400' : 'bg-[#72767d]') + '"></span>';
+      el.onclick = function() { openChat(s); };
+      list.appendChild(el);
+    });
+  }
+
+  // ---------- SEARCH ----------
+  $('search').oninput = function() {
+    var q = this.value.trim().toLowerCase();
+    var items = $('studentList').querySelectorAll('.student-item');
+    items.forEach(function(el) {
+      var match = !q || el.dataset.name.toLowerCase().includes(q) ||
+                  el.dataset.username.toLowerCase().includes(q) ||
+                  String(el.dataset.grade).includes(q);
+      el.style.display = match ? 'flex' : 'none';
+    });
+  };
+
+  // ---------- SOCKET ----------
+  function connectSocket() {
+    if (socket) { socket.disconnect(); }
+    try { socket = io(); } catch (e) { console.warn('Socket.io failed:', e); return; }
+
+    socket.on('connect', function() { console.log('socket connected'); });
+    socket.on('connect_error', function(err) { console.warn('socket error:', err.message); });
+
+    socket.on('online users', function(usernames) {
+      online = new Set(usernames);
+      if (selectedUser) updateStatus();
+      renderDirectory();
+      if (selectedUser) {
+        var active = $('studentList').querySelector('.student-item[data-username="' + selectedUser.username + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+
+    socket.on('private message', function(msg) {
+      if (!selectedUser) return;
+      var mine = (msg.sender === currentUser.username && msg.receiver === selectedUser.username) ||
+                 (msg.sender === selectedUser.username && msg.receiver === currentUser.username);
+      if (mine) { appendMessage(msg); scrollBottom(); }
+    });
+
+    socket.on('directory changed', function() { loadDirectory(); });
+  }
+
+  // ---------- OPEN CHAT ----------
+  function openChat(user) {
+    selectedUser = user;
+    $('hName').textContent = user.name;
+    $('hUser').textContent = '@' + user.username + ' · Grade ' + user.grade;
+    $('hAvatar').textContent = initials(user.name);
+    $('hAvatar').className = 'w-9 h-9 rounded-full bg-[#5865f2] text-white flex items-center justify-center font-medium';
+    updateStatus();
+
+    $('studentList').querySelectorAll('.student-item').forEach(function(el) { el.classList.remove('active'); });
+    var active = $('studentList').querySelector('.student-item[data-username="' + user.username + '"]');
+    if (active) active.classList.add('active');
+
+    $('msgInput').disabled = false;
+    $('sendBtn').disabled = false;
+    $('msgInput').focus();
+
+    $('messages').innerHTML = '';
+
+    fetch('/api/messages/' + encodeURIComponent(user.username), { credentials: 'same-origin' })
+      .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(history) {
+        if (history.length === 0) {
+          $('messages').innerHTML = '<div class="text-center text-[#72767d] text-sm py-10">Say hi to ' + esc(user.name) + '!</div>';
+        } else {
+          history.forEach(appendMessage);
+          scrollBottom();
+        }
+      })
+      .catch(function(err) {
+        console.error('History failed:', err);
+        $('messages').innerHTML = '<div class="text-center text-red-400 text-sm py-10">Could not load history.</div>';
+      });
+  }
+
+  function updateStatus() {
+    if (!selectedUser) return;
+    var isOnline = online.has(selectedUser.username);
+    $('hStatus').classList.remove('hidden');
+    $('hStatus').classList.add('flex');
+    $('hStatus').innerHTML = isOnline
+      ? '<span class="w-2 h-2 rounded-full bg-green-400"></span><span class="text-xs text-[#b9bbbe]">online</span>'
+      : '<span class="w-2 h-2 rounded-full bg-[#72767d]"></span><span class="text-xs text-[#b9bbbe]">offline</span>';
+  }
+
+  // ---------- RENDER MESSAGE ----------
+  function appendMessage(msg) {
+    var isMine = msg.sender === currentUser.username;
+    var wrap = document.createElement('div');
+    wrap.className = 'flex ' + (isMine ? 'justify-end' : 'justify-start') + ' w-full';
+
+    var bubble = document.createElement('div');
+    bubble.className = 'px-4 py-2.5 rounded-2xl text-sm max-w-[80%] ' +
+      (isMine ? 'bg-[#5865f2] text-white rounded-br-md' : 'bg-[#40444b] text-[#dcddde] rounded-bl-md');
+
+    var time = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    bubble.innerHTML = '<p>' + esc(msg.text) + '</p>' +
+      '<span class="text-[10px] ' + (isMine ? 'text-[#b9bbbe]' : 'text-[#72767d]') + ' block text-right mt-1">' + time + '</span>';
+
+    wrap.appendChild(bubble);
+    $('messages').appendChild(wrap);
+  }
+
+  function scrollBottom() {
+    $('messages').scrollTop = $('messages').scrollHeight;
+  }
+
+  // ---------- SEND ----------
+  function sendMessage() {
+    var text = $('msgInput').value.trim();
+    if (!text || !selectedUser) return;
+    if (!socket || !socket.connected) {
+      banner('Not connected to server. Refresh the page.');
+      return;
+    }
+    socket.emit('private message', { toUsername: selectedUser.username, text: text });
+    $('msgInput').value = '';
+    $('msgInput').focus();
+  }
+  $('sendBtn').onclick = sendMessage;
+  $('msgInput').onkeydown = function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }
+  };
+
+  // ---------- BOOT ----------
+  fetch('/api/me', { credentials: 'same-origin' })
+    .then(function(r) {
+      if (r.ok) return r.json().then(function(u) { currentUser = u; enterApp(); });
+    })
+    .catch(function() { /* stay on auth */ });
+
+})();
+</script>
+</body>
+</html>
+
+On Thu, Oct 29, 2026, 4:41 PM David White <davideugenewhite2011@gmail.com> wrote:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AirTime · school messaging</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    .scroll-smooth::-webkit-scrollbar { width: 8px; }
+    .scroll-smooth::-webkit-scrollbar-track { background: #2f3136; }
+    .scroll-smooth::-webkit-scrollbar-thumb { background: #202225; border-radius: 4px; }
+    .message-bubble { word-wrap: break-word; max-width: 85%; }
+    .student-item:hover { background-color: #36393f !important; }
+    .student-item.active { background-color: #40444b !important; border-left: 3px solid #5865f2; }
+    .auth-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: #202225;
+      border: 1px solid #40444b;
+      border-radius: 6px;
+      color: #dcddde;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .auth-input:focus { border-color: #5865f2; }
+    .auth-input::placeholder { color: #72767d; }
+    .btn-primary {
+      background: #5865f2;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 14px;
+      transition: background 0.15s;
+      width: 100%;
+    }
+    .btn-primary:hover { background: #4752c4; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body class="bg-[#36393f] font-sans antialiased h-screen flex flex-col text-[#dcddde]">
+
+  <!-- ============================================================ -->
+  <!-- AUTH SCREEN -->
+  <!-- ============================================================ -->
+  <div id="authScreen" class="flex-1 flex items-center justify-center bg-[#36393f] p-4">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-8">
+        <div class="w-20 h-20 bg-[#5865f2] rounded-2xl flex items-center justify-center text-white font-bold text-4xl shadow-xl mx-auto mb-4">A</div>
+        <h1 class="text-2xl font-bold text-white">AirTime</h1>
+        <p class="text-sm text-[#b9bbbe] mt-1">School direct messaging</p>
+      </div>
+
+      <div class="bg-[#2f3136] rounded-lg p-6 shadow-2xl">
+        <div class="flex mb-6 bg-[#202225] rounded-md p-1">
+          <button id="tabLogin" class="flex-1 py-2 text-sm font-medium rounded-md transition bg-[#40444b] text-white">Log In</button>
+          <button id="tabSignup" class="flex-1 py-2 text-sm font-medium rounded-md transition text-[#b9bbbe]">Sign Up</button>
+        </div>
+
+        <div id="authError" class="hidden mb-4 p-3 bg-red-900/40 border border-red-700 rounded-md text-red-300 text-sm"></div>
+
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-[#b9bbbe] uppercase tracking-wide mb-1.5">Username</label>
+            <input type="text" id="loginUsername" class="auth-input" placeholder="your.username" required>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[#b9bbbe] uppercase tracking-wide mb-1.5">Password</label>
+            <input type="password" id="loginPassword" class="auth-input" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn-primary">Log In</button>
+        </form>
+
+        <form id="signupForm" class="space-y-4 hidden">
+          <div>
+            <label class="block text-xs font-medium text-[#b9bbbe] uppercase tracking-wide mb-1.5">Full Name</label>
+            <input type="text" id="signupName" class="auth-input" placeholder="Alex Rivera" required>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[#b9bbbe] uppercase tracking-wide mb-1.5">Username</label>
+            <input type="text" id="signupUsername" class="auth-input" placeholder="alex.rivera" required>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[#b9bbbe] uppercase tracking-wide mb-1.5">Grade</label>
+            <select id="signupGrade" class="auth-input" required>
+              <option value="">Select grade...</option>
+              <option value="6">Grade 6</option>
+              <option value="7">Grade 7</option>
+              <option value="8">Grade 8</option>
+              <option value="9">Grade 9</option>
+              <option value="10">Grade 10</option>
+              <option value="11">Grade 11</option>
+              <option value="12">Grade 12</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[#b9bbbe] uppercase tracking-wide mb-1.5">Password</label>
+            <input type="password" id="signupPassword" class="auth-input" placeholder="At least 6 characters" required minlength="6">
+          </div>
+          <button type="submit" class="btn-primary">Create Account</button>
+        </form>
+      </div>
+
+      <p class="text-center text-[#72767d] text-xs mt-6">Private 1-on-1 messaging for students</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MAIN APP -->
+  <!-- ============================================================ -->
+  <div id="appScreen" class="hidden flex-1 flex-col overflow-hidden">
+
+    <header class="bg-[#202225] border-b border-[#202225] px-6 py-2.5 flex items-center shadow-md flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-[#5865f2] rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md">A</div>
+        <h1 class="text-lg font-semibold text-white">AirTime <span class="text-xs font-normal text-[#b9bbbe] ml-1">/ school messaging</span></h1>
+      </div>
+      <div class="ml-auto flex items-center gap-4">
+        <span class="text-sm text-[#b9bbbe]"><i class="fas fa-user-graduate mr-1"></i> <span id="meName">—</span> · Grade <span id="meGrade">—</span></span>
+        <div id="meAvatar" class="w-8 h-8 rounded-full bg-[#5865f2] flex items-center justify-center text-white font-medium text-sm">?</div>
+        <button id="logoutBtn" class="text-[#b9bbbe] hover:text-white transition text-sm ml-2" title="Log out">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+
+      <aside class="w-80 flex-shrink-0 bg-[#2f3136] border-r border-[#202225] flex flex-col overflow-hidden">
+        <div class="p-3 border-b border-[#202225]">
+          <div class="relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#72767d] text-xs"></i>
+            <input type="text" id="directorySearch" placeholder="Find a student..." 
+                   class="w-full pl-8 pr-3 py-2 bg-[#202225] border-0 rounded-md text-sm text-[#dcddde] placeholder-[#72767d] focus:ring-1 focus:ring-[#5865f2] outline-none transition">
+          </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto scroll-smooth p-1.5" id="studentList">
+          <div id="loadingDirectory" class="flex items-center justify-center h-full text-[#72767d] text-sm">
+            <i class="fas fa-spinner fa-spin mr-2"></i> Loading students...
+          </div>
+          <div id="emptyDirectory" class="hidden flex-col items-center justify-center h-full text-center text-[#72767d] px-6">
+            <div class="w-16 h-16 bg-[#40444b] rounded-full flex items-center justify-center mb-3">
+              <i class="fas fa-users text-2xl text-[#72767d]"></i>
+            </div>
+            <p class="text-sm font-medium text-[#b9bbbe]">No students yet</p>
+            <p class="text-xs mt-1 max-w-[200px]">When other students sign up, they'll appear here.</p>
+          </div>
+          <div id="noResults" class="hidden px-4 py-8 text-center text-[#72767d] text-sm">
+            <i class="fas fa-user-slash mr-1"></i> No students found
+          </div>
+        </div>
+      </aside>
+
+      <main class="flex-1 flex flex-col bg-[#36393f] overflow-hidden">
+        <div id="chatHeader" class="bg-[#36393f] border-b border-[#202225] px-6 py-3 flex items-center gap-4 flex-shrink-0 shadow-sm">
+          <div id="headerAvatar" class="w-9 h-9 rounded-full bg-[#40444b] text-[#b9bbbe] flex items-center justify-center font-medium text-base">
+            <i class="fas fa-comment"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-semibold text-white" id="headerName">Select a student</h2>
+            <p class="text-xs text-[#b9bbbe]" id="headerUsername">Pick someone from the directory</p>
+          </div>
+          <div id="headerStatus" class="ml-auto hidden items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-green-400"></span>
+            <span class="text-xs text-[#b9bbbe]">online</span>
+          </div>
+        </div>
+
+        <div id="messageContainer" class="flex-1 overflow-y-auto scroll-smooth px-6 py-4 space-y-2">
+          <div id="emptyChatPlaceholder" class="h-full flex flex-col items-center justify-center text-center text-[#72767d]">
+            <div class="w-20 h-20 bg-[#40444b] rounded-full flex items-center justify-center mb-4">
+              <i class="fas fa-comments text-3xl text-[#72767d]"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-[#b9bbbe] mb-1">Your messages</h3>
+            <p class="text-sm max-w-xs">Pick a student from the directory to start a private conversation.</p>
+          </div>
+        </div>
+
+        <div class="bg-[#36393f] border-t border-[#202225] p-4 flex-shrink-0">
+          <div class="flex items-center gap-3">
+            <input type="text" id="messageInput" placeholder="Message..." 
+                   class="flex-1 bg-[#40444b] border-0 rounded-lg px-4 py-3 text-sm text-[#dcddde] placeholder-[#72767d] focus:ring-1 focus:ring-[#5865f2] outline-none transition"
+                   disabled>
+            <button id="sendButton" class="bg-[#5865f2] hover:bg-[#4752c4] text-white rounded-lg p-3 w-12 h-12 flex items-center justify-center shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+              <i class="fas fa-paper-plane text-lg"></i>
+            </button>
+          </div>
+          <p class="text-[10px] text-[#72767d] mt-1.5 ml-1">Messages are private between you and the selected student.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ---------- STATE ----------
+      let currentUser = null;
+      let selectedUser = null;
+      let allStudents = [];
+      let socket = null;
+      let onlineUsers = new Set();
+
+      // ---------- DOM ----------
+      const authScreen = document.getElementById('authScreen');
+      const appScreen = document.getElementById('appScreen');
+      const tabLogin = document.getElementById('tabLogin');
+      const tabSignup = document.getElementById('tabSignup');
+      const loginForm = document.getElementById('loginForm');
+      const signupForm = document.getElementById('signupForm');
+      const authError = document.getElementById('authError');
+
+      const meName = document.getElementById('meName');
+      const meGrade = document.getElementById('meGrade');
+      const meAvatar = document.getElementById('meAvatar');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      const studentListEl = document.getElementById('studentList');
+      const loadingDirectory = document.getElementById('loadingDirectory');
+      const emptyDirectory = document.getElementById('emptyDirectory');
+      const noResultsEl = document.getElementById('noResults');
+      const searchInput = document.getElementById('directorySearch');
+
+      const messageContainer = document.getElementById('messageContainer');
+      const emptyPlaceholder = document.getElementById('emptyChatPlaceholder');
+      const headerName = document.getElementById('headerName');
+      const headerUsername = document.getElementById('headerUsername');
+      const headerAvatar = document.getElementById('headerAvatar');
+      const headerStatus = document.getElementById('headerStatus');
+      const messageInput = document.getElementById('messageInput');
+      const sendButton = document.getElementById('sendButton');
+
+      // ---------- HELPERS ----------
+      function showError(msg) { authError.textContent = msg; authError.classList.remove('hidden'); }
+      function clearError() { authError.classList.add('hidden'); }
+      function initials(name) { return String(name).split(' ').map(w => w[0] || '').join('').slice(0, 2).toUpperCase(); }
+      function escapeHtml(unsafe) {
+        return String(unsafe).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+      }
+      function scrollToBottom() { messageContainer.scrollTop = messageContainer.scrollHeight; }
+
+      // ---------- TABS ----------
+      tabLogin.addEventListener('click', () => {
+        tabLogin.classList.add('bg-[#40444b]', 'text-white'); tabLogin.classList.remove('text-[#b9bbbe]');
+        tabSignup.classList.remove('bg-[#40444b]', 'text-white'); tabSignup.classList.add('text-[#b9bbbe]');
+        loginForm.classList.remove('hidden'); signupForm.classList.add('hidden'); clearError();
+      });
+      tabSignup.addEventListener('click', () => {
+        tabSignup.classList.add('bg-[#40444b]', 'text-white'); tabSignup.classList.remove('text-[#b9bbbe]');
+        tabLogin.classList.remove('bg-[#40444b]', 'text-white'); tabLogin.classList.add('text-[#b9bbbe]');
+        signupForm.classList.remove('hidden'); loginForm.classList.add('hidden'); clearError();
+      });
+
+      // ---------- SIGNUP ----------
+      signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearError();
+        const btn = signupForm.querySelector('button[type="submit"]');
+        btn.disabled = true; btn.textContent = 'Creating...';
+        try {
+          const res = await fetch('/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: document.getElementById('signupName').value.trim(),
+              username: document.getElementById('signupUsername').value.trim(),
+              password: document.getElementById('signupPassword').value,
+              grade: parseInt(document.getElementById('signupGrade').value, 10)
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Signup failed');
+          currentUser = data;
+          await enterApp();
+        } catch (err) { showError(err.message); }
+        finally { btn.disabled = false; btn.textContent = 'Create Account'; }
+      });
+
+      // ---------- LOGIN ----------
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearError();
+        const btn = loginForm.querySelector('button[type="submit"]');
+        btn.disabled = true; btn.textContent = 'Logging in...';
+        try {
+          const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: document.getElementById('loginUsername').value.trim(),
+              password: document.getElementById('loginPassword').value
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Login failed');
+          currentUser = data;
+          await enterApp();
+        } catch (err) { showError(err.message); }
+        finally { btn.disabled = false; btn.textContent = 'Log In'; }
+      });
+
+      // ---------- LOGOUT ----------
+      logoutBtn.addEventListener('click', async () => {
+        await fetch('/api/logout', { method: 'POST' });
+        if (socket) socket.disconnect();
+        currentUser = null; selectedUser = null; allStudents = []; onlineUsers.clear();
+        appScreen.classList.add('hidden'); appScreen.classList.remove('flex');
+        authScreen.classList.remove('hidden');
+        messageInput.value = '';
+        loginForm.reset(); signupForm.reset();
+      });
+
+      // ---------- ENTER APP ----------
+      async function enterApp() {
+        authScreen.classList.add('hidden');
+        appScreen.classList.remove('hidden');
+        appScreen.classList.add('flex');
+
+        meName.textContent = currentUser.name;
+        meGrade.textContent = currentUser.grade;
+        meAvatar.textContent = initials(currentUser.name);
+
+        await loadDirectory();
+        connectSocket();
+
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+        emptyPlaceholder.style.display = 'flex';
+      }
+
+      // ---------- DIRECTORY ----------
+      async function loadDirectory() {
+        loadingDirectory.classList.remove('hidden');
+        emptyDirectory.classList.add('hidden');
+        noResultsEl.classList.add('hidden');
+
+        try {
+          const res = await fetch('/api/users');
+          if (!res.ok) throw new Error('Failed to load directory');
+          allStudents = await res.json();
+          renderDirectory();
+        } catch (err) {
+          console.error(err);
+          loadingDirectory.innerHTML = '<span class="text-red-400 text-sm">Failed to load students</span>';
+        }
+      }
+
+      function renderDirectory() {
+        loadingDirectory.classList.add('hidden');
+        studentListEl.querySelectorAll('.student-item').forEach(el => el.remove());
+
+        if (allStudents.length === 0) {
+          emptyDirectory.classList.remove('hidden');
+          emptyDirectory.classList.add('flex');
+          return;
+        }
+        emptyDirectory.classList.add('hidden');
+        emptyDirectory.classList.remove('flex');
+
+        allStudents.forEach(student => {
+          const item = document.createElement('div');
+          item.className = 'student-item px-3 py-2.5 rounded-lg flex items-center gap-3 cursor-pointer transition';
+          item.dataset.username = student.username;
+          item.dataset.name = student.name;
+          item.dataset.grade = student.grade;
+
+          const isOnline = onlineUsers.has(student.username);
+          const dotColor = isOnline ? 'bg-green-400' : 'bg-[#72767d]';
+
+          item.innerHTML = `
+            <div class="w-9 h-9 rounded-full bg-[#5865f2] text-white flex items-center justify-center font-medium text-sm">${initials(student.name)}</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-[#dcddde] truncate">${escapeHtml(student.name)}</p>
+              <p class="text-xs text-[#b9bbbe] truncate">@${escapeHtml(student.username)} · Grade ${student.grade}</p>
+            </div>
+            <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+          `;
+          item.addEventListener('click', () => openChatWith(student));
+          studentListEl.appendChild(item);
+        });
+
+        filterStudents();
+      }
+
+      // ---------- SEARCH ----------
+      function filterStudents() {
+        const query = searchInput.value.trim().toLowerCase();
+        const items = studentListEl.querySelectorAll('.student-item');
+        let visibleCount = 0;
+
+        items.forEach(item => {
+          const name = item.dataset.name.toLowerCase();
+          const username = item.dataset.username.toLowerCase();
+          const grade = item.dataset.grade || '';
+          const match = name.includes(query) || username.includes(query) || grade.includes(query);
+          item.style.display = match ? 'flex' : 'none';
+          if (match) visibleCount++;
+        });
+
+        if (allStudents.length === 0) {
+          emptyDirectory.classList.remove('hidden');
+          emptyDirectory.classList.add('flex');
+          noResultsEl.classList.add('hidden');
+          return;
+        }
+
+        if (visibleCount === 0 && query.length > 0) {
+          noResultsEl.classList.remove('hidden');
+          emptyDirectory.classList.add('hidden');
+          emptyDirectory.classList.remove('flex');
+        } else {
+          noResultsEl.classList.add('hidden');
+          emptyDirectory.classList.add('hidden');
+          emptyDirectory.classList.remove('flex');
+        }
+      }
+      searchInput.addEventListener('input', filterStudents);
+
+      // ---------- SOCKET ----------
+      function connectSocket() {
+        if (socket) socket.disconnect();
+        socket = io();
+
+        socket.on('connect', () => console.log('✅ Socket connected'));
+
+        socket.on('online users', (usernames) => {
+          onlineUsers = new Set(usernames);
+          if (selectedUser) updateHeaderStatus();
+          document.querySelectorAll('.student-item').forEach(item => {
+            const dot = item.querySelector('span.rounded-full');
+            if (!dot) return;
+            const isOnline = onlineUsers.has(item.dataset.username);
+            dot.className = `w-2 h-2 rounded-full ${isOnline ? 'bg-green-400' : 'bg-[#72767d]'}`;
+          });
+        });
+
+        socket.on('private message', (msg) => {
+          if (!selectedUser) return;
+          const betweenUs =
+            (msg.sender === currentUser.username && msg.receiver === selectedUser.username) ||
+            (msg.sender === selectedUser.username && msg.receiver === currentUser.username);
+          if (betweenUs) { appendMessageToUI(msg); scrollToBottom(); }
+        });
+
+        socket.on('directory changed', () => { loadDirectory(); });
+
+        socket.on('connect_error', (err) => console.error('Socket error:', err.message));
+      }
+
+      // ---------- OPEN CHAT ----------
+      async function openChatWith(user) {
+        selectedUser = user;
+        headerName.textContent = user.name;
+        headerUsername.textContent = `@${user.username} · Grade ${user.grade}`;
+        headerAvatar.textContent = initials(user.name);
+        headerAvatar.className = 'w-9 h-9 rounded-full bg-[#5865f2] text-white flex items-center justify-center font-medium text-base';
+        updateHeaderStatus();
+
+        document.querySelectorAll('.student-item').forEach(el => el.classList.remove('active'));
+        const activeEl = [...document.querySelectorAll('.student-item')].find(el => el.dataset.username === user.username);
+        if (activeEl) activeEl.classList.add('active');
+
+        messageInput.disabled = false;
+        sendButton.disabled = false;
+        messageInput.focus();
+
+        while (messageContainer.firstChild) messageContainer.removeChild(messageContainer.firstChild);
+
+        try {
+          const res = await fetch(`/api/messages/${encodeURIComponent(user.username)}`);
+          if (!res.ok) throw new Error('Failed to load messages');
+          const history = await res.json();
+
+          if (history.length === 0) {
+            const hint = document.createElement('div');
+            hint.className = 'text-center text-[#72767d] text-sm py-10';
+            hint.id = 'chatHint';
+            hint.textContent = `Say hi to ${user.name}!`;
+            messageContainer.appendChild(hint);
+          } else {
+            history.forEach(appendMessageToUI);
+            scrollToBottom();
+          }
+        } catch (err) {
+          console.error(err);
+          const errEl = document.createElement('div');
+          errEl.className = 'text-center text-red-400 text-sm py-10';
+          errEl.textContent = 'Could not load message history.';
+          messageContainer.appendChild(errEl);
+        }
+      }
+
+      function updateHeaderStatus() {
+        if (!selectedUser) return;
+        const isOnline = onlineUsers.has(selectedUser.username);
+        headerStatus.classList.remove('hidden');
+        headerStatus.classList.add('flex');
+        headerStatus.innerHTML = isOnline
+          ? '<span class="w-2 h-2 rounded-full bg-green-400"></span><span class="text-xs text-[#b9bbbe]">online</span>'
+          : '<span class="w-2 h-2 rounded-full bg-[#72767d]"></span><span class="text-xs text-[#b9bbbe]">offline</span>';
+      }
+
+      // ---------- APPEND MESSAGE ----------
+      function appendMessageToUI(msg) {
+        if (emptyPlaceholder && emptyPlaceholder.parentNode) emptyPlaceholder.style.display = 'none';
+        const hint = document.getElementById('chatHint');
+        if (hint) hint.remove();
+
+        const isMine = msg.sender === currentUser.username;
+        const wrap = document.createElement('div');
+        wrap.className = `flex ${isMine ? 'justify-end' : 'justify-start'} w-full`;
+
+        const bubble = document.createElement('div');
+        bubble.className = `message-bubble px-4 py-2.5 rounded-2xl shadow-sm text-sm ${
+          isMine ? 'bg-[#5865f2] text-white rounded-br-md' : 'bg-[#40444b] text-[#dcddde] rounded-bl-md'
+        }`;
+
+        const time = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+
+        bubble.innerHTML = `
+          <p>${escapeHtml(msg.text)}</p>
+          <span class="text-[10px] ${isMine ? 'text-[#b9bbbe]' : 'text-[#72767d]'} block text-right mt-1">${time}</span>
+        `;
+
+        wrap.appendChild(bubble);
+        messageContainer.appendChild(wrap);
+      }
+
+      // ---------- SEND ----------
+      function sendMessage() {
+        const text = messageInput.value.trim();
+        if (!text || !selectedUser || !socket) return;
+        socket.emit('private message', { toUsername: selectedUser.username, text });
+        messageInput.value = '';
+        messageInput.focus();
+      }
+      sendButton.addEventListener('click', sendMessage);
+      messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }
+      });
+
+      // ---------- INIT ----------
+      (async function init() {
+        try {
+          const res = await fetch('/api/me');
+          if (res.ok) {
+            currentUser = await res.json();
+            await enterApp();
+          }
+        } catch { /* stay on auth screen */ }
+      })();
+
+    })();
+  </script>
+</body>
+</html>
